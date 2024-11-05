@@ -63,18 +63,41 @@ void ctlLoop2() {
     }
   }
 
-  
-  if (!veml_b_began) {  
-    Serial.println("start VEML[B]");
-    veml_b_began = veml_b.begin(&I2C_B);  
-    if (!veml_b_began) {
-      Serial.println("start VEML[B] failed!");
+  // refactor to support another i2c bus
+  if (i2c_exists_b(tcs_addr)) {
+    if (!tcs_b_began) {  
+      tcs_b_began = tcs_b.begin(tcs_addr, &I2C_B);  
+      if (!tcs_b_began) {
+        Serial.println("start TCS[B] failed!");
+        goto tcs_done;
+      }
     }
+
+    tcs_b_loop();
+  }
+  else {
+    Serial.println("TCS[B] not on I2C[B]");
+  }
+  
+  tcs_done:
+  // refactor to support another i2c bus
+  if (i2c_exists_b(veml_addr)) {
+    if (!veml_b_began) {  
+      veml_b_began = veml_b.begin(&I2C_B);  
+      if (!veml_b_began) {
+        Serial.println("start VEML[B] failed!");
+        goto veml_done;
+      }
+    }
+
+    veml_b_loop();
+  }
+  else {
+    Serial.println("VEML[B] not on I2C[B]");
   }
 
-  // refactor to support another i2c bus
-  if (veml_b_began && i2c_exists_b(veml_addr)) veml_b_loop();
-  if (tcs_b_began && i2c_exists_b(tcs_addr)) tcs_b_loop();
+  veml_done:
+  return;
 }
 
 void ledLoop() {
