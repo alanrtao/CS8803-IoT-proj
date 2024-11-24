@@ -1,65 +1,3 @@
-# import board
-# import busio
-# import time
-# import neopixel
-
-# import adafruit_veml7700
-# import adafruit_tcs34725
-
-# # Set up I2C bus
-# i2c = busio.I2C(board.SCL, board.SDA)
-
-# # Initialize VEML7700 sensor
-# veml7700 = adafruit_veml7700.VEML7700(i2c)
-
-# # Initialize TCS34725 sensor
-# tcs = adafruit_tcs34725.TCS34725(i2c)
-# tcs.integration_time = 100
-# tcs.gain = 1
-
-# # Initialize NeoPixel
-# pixel_pin = board.D18  # Adjust this if your NeoPixel is connected to a different pin
-# num_pixels = 7
-# pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=1.0, auto_write=False)
-
-# # Function to map lux to brightness factor (0.0 to 1.0)
-# def lux_to_brightness(lux, max_lux=1000):
-#     brightness = min(max(lux / max_lux, 0.0), 1.0)
-#     return brightness
-
-# # Main loop
-# try:
-#     while True:
-#         # Read lux from VEML7700
-#         lux = veml7700.lux
-#         print('Lux:', lux)
-
-#         # Read RGB bytes from TCS34725
-#         r, g, b = tcs.color_rgb_bytes
-#         print('RGB:', r, g, b)
-
-#         # Map lux value to brightness factor
-#         brightness_factor = lux_to_brightness(lux)
-#         print('Brightness factor:', brightness_factor)
-
-#         # Scale RGB values according to brightness_factor
-#         scaled_r = int(r * brightness_factor)
-#         scaled_g = int(g * brightness_factor)
-#         scaled_b = int(b * brightness_factor)
-
-#         # Set NeoPixels to the scaled RGB color
-#         for i in range(num_pixels):
-#             pixels[i] = (scaled_r, scaled_g, scaled_b)
-#         pixels.show()
-
-#         time.sleep(1.0)
-
-# except KeyboardInterrupt:
-#     # Turn off the NeoPixels before exiting
-#     pixels.fill((0, 0, 0))
-#     pixels.show()
-
-
 import board
 import busio
 import time
@@ -81,8 +19,8 @@ veml7700 = adafruit_veml7700.VEML7700(i2c)
 
 # Initialize TCS34725 sensor
 tcs = adafruit_tcs34725.TCS34725(i2c)
-tcs.integration_time = 100
-tcs.gain = 1
+tcs.integration_time = 300
+tcs.gain = 16
 
 # Initialize NeoPixel
 pixel_pin = board.D18  # Adjust this if your NeoPixel is connected to a different pin
@@ -92,9 +30,9 @@ pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=1.0, auto_write=Fal
 # Shared variable to hold target values
 target_values = {
     'lux': None,
-    'r': None,
-    'g': None,
-    'b': None,
+    'R': None,
+    'G': None,
+    'B': None,
 }
 
 # Lock for thread-safe updates
@@ -122,9 +60,9 @@ def adjust_neopixels():
 
             # Calculate errors
             lux_error = target_values['lux'] - current_lux
-            r_error = target_values['r'] - current_r
-            g_error = target_values['g'] - current_g
-            b_error = target_values['b'] - current_b
+            r_error = target_values['R'] - current_r
+            g_error = target_values['G'] - current_g
+            b_error = target_values['B'] - current_b
 
             # Simple proportional control coefficients
             k_lux = 0.01  # Adjust as needed
@@ -174,12 +112,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 # Update target values based on received JSON
                 if 'lux' in json_data:
                     target_values['lux'] = json_data['lux']
-                if 'r' in json_data:
-                    target_values['r'] = json_data['r']
-                if 'g' in json_data:
-                    target_values['g'] = json_data['g']
-                if 'b' in json_data:
-                    target_values['b'] = json_data['b']
+                if 'R' in json_data:
+                    target_values['R'] = json_data['R']
+                if 'G' in json_data:
+                    target_values['G'] = json_data['G']
+                if 'B' in json_data:
+                    target_values['B'] = json_data['B']
 
             # Send a 200 OK response
             self.send_response(200)
